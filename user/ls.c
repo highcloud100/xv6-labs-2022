@@ -53,7 +53,7 @@ ls(char *path)
       break;
     }
     strcpy(buf, path);
-    p = buf+strlen(buf);
+    p = buf+strlen(buf); // 무슨 의미?
     *p++ = '/';
     while(read(fd, &de, sizeof(de)) == sizeof(de)){
       if(de.inum == 0)
