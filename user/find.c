@@ -20,7 +20,7 @@ void find(char * path, char* target){
     for(tempDir=path+strlen(path); tempDir>= path
          && *tempDir != '/'; tempDir--);
     
-    printf("tempDir %s\n", tempDir); // logging
+    //printf("tempDir %s\n", tempDir); // logging
     tempDir++;
 
 
@@ -28,21 +28,25 @@ void find(char * path, char* target){
     {
     case T_DEVICE:
     case T_FILE:
-        printf("%s\n", path);
-        if(strcmp(tempDir, target)){
-            
+        
+        if(strcmp(tempDir, target) == 0){
+            printf("%s\n", path);
         }
         /* code */
         break;
     case T_DIR:
         strcpy(buf, path);
         char*p = buf+strlen(buf);
-        *p++ = '/';
+        *p++ = '/'; // 경로 누적
+        //printf("path %s\n", path);
         while(read(fd, &de, sizeof(de)) == sizeof(de)){
             if(de.inum == 0) continue;
-            memmove(p, de.name, DIRSIZ);
-            if(strcmp(p, "..")) continue;
-            find(p, target);
+            memmove(p, de.name, DIRSIZ); // 경로 누적
+            p[DIRSIZ] = 0; // 문자 끝
+            //printf("PATH : %s\n", buf);
+            //printf("de.name: %s\n", de.name);
+            if(strcmp(".", de.name)==0 || strcmp("..", de.name)==0) continue;
+            find(buf, target);
         }
         break;
     default:
