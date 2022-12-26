@@ -35,7 +35,7 @@ int main(int argc, char*argv[]){
             *temp = '\0'; // end of str
             
             temp_argv[i] = temp-argSize; // str의 시작 주소를 argv 리스트에 저장
-            printf("temp_argv[%d] = %s\n", i, temp-argSize);
+            //printf("temp_argv[%d] = %s\n", i, temp-argSize);
 
             argSize=0; // argSize 초기화
             i++; // argv 리스트 인덱스 증가
@@ -43,10 +43,10 @@ int main(int argc, char*argv[]){
 
             if(save=='\n'){ // \n이면 fork후 실행
                 if(fork()==0){
-                    for(int k=0;k<i;k++){ // 모든 temp_argv 프린트
-                        printf("%d : %s | ",k,  temp_argv[k]);
-                    }
-                    printf("%d\n", argIndex);
+                    // for(int k=0;k<i;k++){ // 모든 temp_argv 프린트
+                    //     printf("%d : %s | ",k,  temp_argv[k]);
+                    // }
+                    //printf("%d\n", argIndex);
 
                     exec(temp_argv[0], temp_argv+argIndex); // 인자 값을 잘라서 전달
                     fprintf(2, "exec: error\n");
@@ -55,8 +55,15 @@ int main(int argc, char*argv[]){
                 else{
                     wait(0);
                     temp = buf; // 버퍼 맨 앞으로 이동 / 초기화 
-                    temp_argv[i] = argv[0]; // temp_argv 에 path 저장
+                    
+                    temp_argv[i] = argv[1]; // path
                     argIndex=i++; // 잘라서 전달할 부분 지정
+
+                    //temp_argv 에 기존 값 저장
+                    for(int j=2;j<argc;j++){
+                        temp_argv[i++] = argv[j];
+                        //printf("--- %s ---\n", argv[j]);
+                    }
                 }
             }
             
