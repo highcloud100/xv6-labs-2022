@@ -1,0 +1,6 @@
+kerneltrap
+SYS_exec
+user mode
+a22
+load page fault
+0

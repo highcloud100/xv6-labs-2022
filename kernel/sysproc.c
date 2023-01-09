@@ -5,6 +5,24 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "sysinfo.h"
+
+uint64
+sys_sysinfo(void){
+    uint64 dst;
+    argaddr(0, &dst); // get arg from user
+
+    struct proc *p = myproc(); // get user proc
+    struct sysinfo info;
+
+    info.freemem = get_free_memory();
+    info.nproc = get_num_of_proc(); 
+
+    // copy from kernel to user
+    if(copyout(p->pagetable, dst, (char*)&info, sizeof(info)) < 0)
+        return -1;
+    return 0;
+}
 
 uint64
 sys_exit(void)
