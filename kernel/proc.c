@@ -257,17 +257,17 @@ userinit(void)
 // Grow or shrink user memory by n bytes.
 // Return 0 on success, -1 on failure.
 int
-growproc(int n)
+growproc(int n) // sbrk 구현 
 {
   uint64 sz;
   struct proc *p = myproc();
 
   sz = p->sz;
-  if(n > 0){
+  if(n > 0){ // 증가
     if((sz = uvmalloc(p->pagetable, sz, sz + n, PTE_W)) == 0) {
       return -1;
     }
-  } else if(n < 0){
+  } else if(n < 0){ // 감소
     sz = uvmdealloc(p->pagetable, sz, sz + n);
   }
   p->sz = sz;

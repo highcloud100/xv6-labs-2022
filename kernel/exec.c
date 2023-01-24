@@ -7,7 +7,7 @@
 #include "defs.h"
 #include "elf.h"
 
-static int loadseg(pde_t *, uint64, struct inode *, uint, uint);
+static int loadseg(pde_t *, uint64, struct inode *, uint, uint); // 각 세그먼트를 메모리에 불러옴
 
 int flags2perm(int flags)
 {
@@ -33,24 +33,24 @@ exec(char *path, char **argv)
 
   begin_op();
 
-  if((ip = namei(path)) == 0){
+  if((ip = namei(path)) == 0){ // open 바이너리 파일
     end_op();
     return -1;
   }
   ilock(ip);
 
   // Check ELF header
-  if(readi(ip, 0, (uint64)&elf, 0, sizeof(elf)) != sizeof(elf))
+  if(readi(ip, 0, (uint64)&elf, 0, sizeof(elf)) != sizeof(elf)) // ELF헤더를 읽어옴
     goto bad;
 
   if(elf.magic != ELF_MAGIC)
     goto bad;
 
-  if((pagetable = proc_pagetable(p)) == 0)
+  if((pagetable = proc_pagetable(p)) == 0) // 새로운 페이지 테이블 할당
     goto bad;
 
   // Load program into memory.
-  for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
+  for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){ // 각 세그먼트들에 대해 실행
     if(readi(ip, 0, (uint64)&ph, off, sizeof(ph)) != sizeof(ph))
       goto bad;
     if(ph.type != ELF_PROG_LOAD)
@@ -62,10 +62,10 @@ exec(char *path, char **argv)
     if(ph.vaddr % PGSIZE != 0)
       goto bad;
     uint64 sz1;
-    if((sz1 = uvmalloc(pagetable, sz, ph.vaddr + ph.memsz, flags2perm(ph.flags))) == 0)
+    if((sz1 = uvmalloc(pagetable, sz, ph.vaddr + ph.memsz, flags2perm(ph.flags))) == 0) // uvmalloc으로 할당
       goto bad;
     sz = sz1;
-    if(loadseg(pagetable, ph.vaddr, ip, ph.off, ph.filesz) < 0)
+    if(loadseg(pagetable, ph.vaddr, ip, ph.off, ph.filesz) < 0) // 세그먼트 로드
       goto bad;
   }
   iunlockput(ip);

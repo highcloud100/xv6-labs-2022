@@ -24,17 +24,17 @@ struct {
 } kmem;
 
 void
-kinit()
+kinit() // initialize allocator
 {
   initlock(&kmem.lock, "kmem");
-  freerange(end, (void*)PHYSTOP);
+  freerange(end, (void*)PHYSTOP); // 커널 끝과 phystop 사이 모든 페이지를 보유하게 free 목록을 초기화한다.
 }
 
 void
 freerange(void *pa_start, void *pa_end)
 {
-  char *p;
-  p = (char*)PGROUNDUP((uint64)pa_start);
+  char *p; // PTE는 4096바이트의 정렬된 pa 경계만 접근 가능
+  p = (char*)PGROUNDUP((uint64)pa_start); // PGROUNDUP으로 정렬된 물리 주소만 free하게 보장한다.
   for(; p + PGSIZE <= (char*)pa_end; p += PGSIZE)
     kfree(p);
 }
@@ -52,12 +52,12 @@ kfree(void *pa)
     panic("kfree");
 
   // Fill with junk to catch dangling refs.
-  memset(pa, 1, PGSIZE);
+  memset(pa, 1, PGSIZE); // 1로 초기화
 
   r = (struct run*)pa;
 
   acquire(&kmem.lock);
-  r->next = kmem.freelist;
+  r->next = kmem.freelist; // freelist에 추가한다
   kmem.freelist = r;
   release(&kmem.lock);
 }

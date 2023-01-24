@@ -64,7 +64,8 @@ kvminithart()
   // wait for any previous writes to the page table memory to finish.
   sfence_vma();
 
-  w_satp(MAKE_SATP(kernel_pagetable));
+  w_satp(MAKE_SATP(kernel_pagetable)); // 루트 페이지 테이블을 satp 레지스터에 넣는다.
+                                      // 이후 cpu는 커널 페이지 테이블을 이용해 주소를 변환한다.
 
   // flush stale entries from the TLB.
   sfence_vma();
@@ -88,18 +89,18 @@ walk(pagetable_t pagetable, uint64 va, int alloc)
   if(va >= MAXVA)
     panic("walk");
 
-  for(int level = 2; level > 0; level--) {
-    pte_t *pte = &pagetable[PX(level, va)];
-    if(*pte & PTE_V) {
-      pagetable = (pagetable_t)PTE2PA(*pte);
+  for(int level = 2; level > 0; level--) { // 2번 돈다. -> 즉 마지막 pte는 pa를 가르킴 
+    pte_t *pte = &pagetable[PX(level, va)]; // 9비트씩 잘름 // page table에서 엔트리 찾아냄
+    if(*pte & PTE_V) { // valid 가 설정되지 않았다면 요구된 페이지가 아직 allocated 되지 않음 -> 연결된 페이지 테이블이 없는 거임
+      pagetable = (pagetable_t)PTE2PA(*pte); // pte에서 pa를 가져온다
     } else {
-      if(!alloc || (pagetable = (pde_t*)kalloc()) == 0)
+      if(!alloc || (pagetable = (pde_t*)kalloc()) == 0) // alloc 인자가 set되어 있으면 페이지 테이블을 만들어 물리 주소를 
         return 0;
-      memset(pagetable, 0, PGSIZE);
-      *pte = PA2PTE(pagetable) | PTE_V;
+      memset(pagetable, 0, PGSIZE); 
+      *pte = PA2PTE(pagetable) | PTE_V; // pte에 집어 넣어줌 
     }
   }
-  return &pagetable[PX(0, va)];
+  return &pagetable[PX(0, va)]; // 가장 트리 밑의 주소를 반환한다. 
 }
 
 // Look up a virtual address, return the physical address,
@@ -148,14 +149,14 @@ mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
   if(size == 0)
     panic("mappages: size");
   
-  a = PGROUNDDOWN(va);
-  last = PGROUNDDOWN(va + size - 1);
+  a = PGROUNDDOWN(va); // 가상 주소 시작 
+  last = PGROUNDDOWN(va + size - 1); // 가상 주소 끝
   for(;;){
-    if((pte = walk(pagetable, a, 1)) == 0)
+    if((pte = walk(pagetable, a, 1)) == 0) // 가상 주소의 pte를 찾음
       return -1;
     if(*pte & PTE_V)
       panic("mappages: remap");
-    *pte = PA2PTE(pa) | perm | PTE_V;
+    *pte = PA2PTE(pa) | perm | PTE_V; // 물리주소->pte 변환 + (원하는 권한 + valid) 로 pte 초기화
     if(a == last)
       break;
     a += PGSIZE;
@@ -224,7 +225,7 @@ uvmfirst(pagetable_t pagetable, uchar *src, uint sz)
 // newsz, which need not be page aligned.  Returns new size or 0 on error.
 uint64
 uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
-{
+{ 
   char *mem;
   uint64 a;
 

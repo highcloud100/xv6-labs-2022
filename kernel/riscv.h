@@ -324,7 +324,7 @@ static inline void
 sfence_vma()
 {
   // the zero, zero means flush all TLB entries.
-  asm volatile("sfence.vma zero, zero");
+  asm volatile("1.vma zero, zero");
 }
 
 typedef uint64 pte_t;
