@@ -28,12 +28,13 @@ uservec:
 
         # save user a0 in sscratch so
         # a0 can be used to get at TRAPFRAME.
-        csrw sscratch, a0
+        csrw sscratch, a0 // a0 값을 sscratch에 저장한다.
 
         # each process has a separate p->trapframe memory area,
         # but it's mapped to the same virtual address
         # (TRAPFRAME) in every process's user page table.
-        li a0, TRAPFRAME
+        li a0, TRAPFRAME // a0 값에 trapframe을 가져온다. 
+                        // 모든 프로세스는 같은 가상 주소에 trapframe을 가지고 있다.
         
         # save the user registers in TRAPFRAME
         sd ra, 40(a0)
@@ -68,34 +69,34 @@ uservec:
         sd t6, 280(a0)
 
 	# save the user a0 in p->trapframe->a0
-        csrr t0, sscratch
+        csrr t0, sscratch  // 저장했던 a0 값을 trapframe a0에 저장한다.
         sd t0, 112(a0)
 
         # initialize kernel stack pointer, from p->trapframe->kernel_sp
-        ld sp, 8(a0)
+        ld sp, 8(a0) // 커널 스택 포인터를 지정한다.
 
         # make tp hold the current hartid, from p->trapframe->kernel_hartid
-        ld tp, 32(a0)
+        ld tp, 32(a0) // 커널의 hartid 지정한다.
 
         # load the address of usertrap(), from p->trapframe->kernel_trap
-        ld t0, 16(a0)
+        ld t0, 16(a0) // usertrap의 주소를 불러온다. ? 
 
 
         # fetch the kernel page table address, from p->trapframe->kernel_satp.
-        ld t1, 0(a0)
+        ld t1, 0(a0) // 커널 페이지 테이블 주소를 가져온다.
 
         # wait for any previous memory operations to complete, so that
         # they use the user page table.
         sfence.vma zero, zero
 
         # install the kernel page table.
-        csrw satp, t1
+        csrw satp, t1 // 커널 페이지 테이블로 변경
 
         # flush now-stale user entries from the TLB.
         sfence.vma zero, zero
 
         # jump to usertrap(), which does not return
-        jr t0
+        jr t0 // usertrap으로 건너 뛴다.
 
 .globl userret
 userret:

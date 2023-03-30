@@ -43,12 +43,14 @@ usertrap(void)
 
   // send interrupts and exceptions to kerneltrap(),
   // since we're now in the kernel.
-  w_stvec((uint64)kernelvec);
+  w_stvec((uint64)kernelvec); // 커널 영역으로 넘어왔기에 트랩 핸들러를 바꿔준다.
+
 
   struct proc *p = myproc();
   
   // save user program counter.
   p->trapframe->epc = r_sepc();
+  // 다른 프로세스의 커널 스레드로 스위치 될 수 있기 때문에 저장
   
   if(r_scause() == 8){
     // system call
