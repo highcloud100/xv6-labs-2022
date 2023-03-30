@@ -42,12 +42,12 @@ usertrap(void)
     panic("usertrap: not from user mode");
 
   // send interrupts and exceptions to kerneltrap(),
-  // since we're now in the kernel.
-  w_stvec((uint64)kernelvec);
+  // since we're now in the kernel. // 커널 모드니까 여기서 또 트랩 발생하면 커널 벡터가 핸들러가 됨
+  w_stvec((uint64)kernelvec);  // 벡터를 커널 벡터로 바꿈 // change stvec to kernelvec
 
   struct proc *p = myproc();
   
-  // save user program counter.
+  // save user program counter. // yeild를 통해 다른 커널 스레드로 switch될 수 있음 // 레지스터에 저장되있는 것을 트랩 프레임에도 저장
   p->trapframe->epc = r_sepc();
   
   if(r_scause() == 8){
