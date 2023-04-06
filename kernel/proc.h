@@ -79,11 +79,22 @@ struct trapframe {
   /* 280 */ uint64 t6;
 };
 
+
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+
 
 // Per-process state
 struct proc {
   struct spinlock lock;
+  
+  //store alarm interval and the pointer to the handler function
+  int interval;
+  uint64 handler;
+  struct trapframe temp;
+  int is_returned;
+  //how many tick?
+  int tick;
+
 
   // p->lock must be held when using these:
   enum procstate state;        // Process state
